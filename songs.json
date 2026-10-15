@@ -1,0 +1,5 @@
+[
+  { "label": "Lagu 1", "file": "lagu/lagu-1.mp3" },
+  { "label": "Lagu 2", "file": "lagu/lagu-2.mp3" },
+  { "label": "Lagu 3", "file": "lagu/lagu-3.mp3" }
+]

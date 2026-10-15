@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radio Files</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #111; color: #eee; max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+  h1 { font-size: 1.4rem; }
+  .song { background: #1c1c1c; border: 1px solid #333; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .song b { display: block; margin-bottom: 6px; }
+  .url { font-size: .8rem; color: #8ab4ff; word-break: break-all; margin: 6px 0; }
+  audio { width: 100%; }
+  button { background: #2d6cdf; color: #fff; border: 0; border-radius: 6px; padding: 6px 12px; cursor: pointer; margin-right: 6px; }
+  button:hover { background: #3d7cf0; }
+  textarea { width: 100%; height: 180px; background: #1c1c1c; color: #ddd; border: 1px solid #333; border-radius: 8px; padding: 10px; font-family: monospace; box-sizing: border-box; }
+  .err { color: #ff7b7b; }
+</style>
+</head>
+<body>
+<h1>Radio Files</h1>
+<p>Halaman ini otomatis membaca <code>songs.json</code>. Klik play untuk tes, klik Copy untuk ambil link.</p>
+<div id="list">Memuat...</div>
+
+<h2>Format Lua (untuk config FiveM)</h2>
+<textarea id="lua" readonly></textarea>
+<p><button id="copyLua">Copy semua</button></p>
+
+<script>
+const base = location.href.replace(/[^/]*$/, ''); // folder tempat index.html berada
+const list = document.getElementById('list');
+const luaBox = document.getElementById('lua');
+
+function copy(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.textContent; btn.textContent = 'Tersalin!';
+    setTimeout(() => btn.textContent = old, 1200);
+  });
+}
+
+fetch('songs.json?' + Date.now())
+  .then(r => r.json())
+  .then(songs => {
+    list.innerHTML = '';
+    const lua = ['Config.Songs = {'];
+    songs.forEach(s => {
+      const url = base + s.file.split('/').map(encodeURIComponent).join('/');
+      lua.push(`    { label = "${s.label}", url = "${url}" },`);
+      const div = document.createElement('div');
+      div.className = 'song';
+      div.innerHTML = `<b></b><div class="url"></div><audio controls preload="none"></audio><div style="margin-top:8px"><button>Copy link</button></div>`;
+      div.querySelector('b').textContent = s.label;
+      div.querySelector('.url').textContent = url;
+      div.querySelector('audio').src = url;
+      div.querySelector('button').onclick = e => copy(url, e.target);
+      list.appendChild(div);
+    });
+    lua.push('}');
+    luaBox.value = lua.join('\n');
+  })
+  .catch(() => { list.innerHTML = '<p class="err">Gagal membaca songs.json. Cek formatnya (koma dan tanda kutip).</p>'; });
+
+document.getElementById('copyLua').onclick = e => copy(luaBox.value, e.target);
+</script>
+</body>
+</html>
